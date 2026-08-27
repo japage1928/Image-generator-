@@ -123,6 +123,55 @@
   }
 }
 
+/* Distinct local demo motion so the controls are meaningful before a live
+ * provider is configured. These are previews, not AI-generated frames. */
+.motion-preview-push {
+  animation: motion-push 6s ease-in-out infinite alternate;
+}
+
+.motion-preview-pan {
+  animation: motion-pan 6s ease-in-out infinite alternate;
+}
+
+.motion-preview-orbit {
+  animation: motion-orbit 6s ease-in-out infinite alternate;
+}
+
+.motion-preview-parallax {
+  animation: motion-parallax 6s ease-in-out infinite alternate;
+}
+
+.motion-preview-handheld {
+  animation: motion-handheld 1.7s ease-in-out infinite;
+}
+
+@keyframes motion-push {
+  from { transform: scale(1.02); }
+  to { transform: scale(1.18) translate3d(1%, -1%, 0); }
+}
+
+@keyframes motion-pan {
+  from { transform: scale(1.08) translate3d(-4%, 0, 0); }
+  to { transform: scale(1.08) translate3d(4%, 0, 0); }
+}
+
+@keyframes motion-orbit {
+  from { transform: scale(1.08) translate3d(-2%, 1%, 0) rotate(-1deg); }
+  to { transform: scale(1.08) translate3d(2%, -1%, 0) rotate(1deg); }
+}
+
+@keyframes motion-parallax {
+  from { transform: scale(1.12) translate3d(-3%, 2%, 0); }
+  to { transform: scale(1.12) translate3d(3%, -2%, 0); }
+}
+
+@keyframes motion-handheld {
+  0%, 100% { transform: scale(1.06) translate3d(0, 0, 0) rotate(0); }
+  25% { transform: scale(1.06) translate3d(-0.7%, 0.4%, 0) rotate(-0.3deg); }
+  50% { transform: scale(1.07) translate3d(0.6%, -0.3%, 0) rotate(0.25deg); }
+  75% { transform: scale(1.06) translate3d(-0.3%, -0.5%, 0) rotate(-0.15deg); }
+}
+
 @layer base {
   * {
     border-color: var(--color-border);

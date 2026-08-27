@@ -1,12 +1,10 @@
 import type { GenerationSettings } from "./types";
+import { buildMotionPlan } from "./motion-plan";
 
 /**
- * Service interface for a future real image-to-video provider.
- *
- * Nothing here calls an external API. `DemoGenerationService` runs entirely in
- * the browser and produces an honestly-labelled demo render from the uploaded
- * image. When a provider is connected, implement this interface against a
- * server function and swap the export below.
+ * The demo service is local and intentionally honest. The live service submits
+ * a validated job to the server route, which forwards it to n8n and polls for
+ * the completed provider output.
  */
 export interface GenerationRequest extends GenerationSettings {
   /** Data URL of the source image. */
@@ -19,6 +17,7 @@ export interface GenerationResult {
   /** No provider is connected yet, so this is always undefined in demo mode. */
   videoUrl?: string;
   jobId?: string;
+  motionPreset?: GenerationSettings["motionPreset"];
   demo: boolean;
 }
 
@@ -54,7 +53,11 @@ export const demoGenerationService: GenerationService = {
       onProgress(percent, stage);
     }
 
-    return { previewImage: request.image, demo: true };
+    return {
+      previewImage: request.image,
+      motionPreset: request.motionPreset,
+      demo: true,
+    };
   },
 };
 
@@ -66,9 +69,22 @@ type JobResponse = {
   progress?: number;
   stage?: string;
   videoUrl?: string;
+  video_url?: string;
+  url?: string;
+  output?: string | { url?: string };
   previewImage?: string;
   error?: string;
 };
+
+function videoUrlFrom(payload: JobResponse): string | undefined {
+  if (payload.videoUrl) return payload.videoUrl;
+  if (payload.video_url) return payload.video_url;
+  if (payload.url) return payload.url;
+  if (typeof payload.output === "string") return payload.output;
+  if (payload.output && typeof payload.output === "object" && payload.output.url)
+    return payload.output.url;
+  return undefined;
+}
 
 async function readJson(response: Response): Promise<JobResponse> {
   const body = (await response.json().catch(() => ({}))) as JobResponse;
@@ -83,11 +99,24 @@ const liveGenerationService: GenerationService = {
     const response = await fetch(LIVE_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(request),
+      body: JSON.stringify({
+        ...request,
+        motionPlan: buildMotionPlan(request.prompt, request.motionPreset, request.motionStrength),
+      }),
       signal,
     });
     const created = await readJson(response);
-    if (!created.jobId) throw new Error("The generation service did not return a job ID.");
+    const immediateVideoUrl = videoUrlFrom(created);
+    if (immediateVideoUrl) {
+      onProgress(100, "Complete");
+      return {
+        previewImage: created.previewImage || request.image,
+        videoUrl: immediateVideoUrl,
+        demo: false,
+      };
+    }
+    if (!created.jobId)
+      throw new Error("The generation service did not return a job ID or video URL.");
 
     onProgress(created.progress ?? 5, created.stage ?? "Queued");
     while (true) {
@@ -111,13 +140,15 @@ const liveGenerationService: GenerationService = {
         throw new Error(job.error || "The provider failed to render this video.");
       }
       if (job.status === "completed") {
-        if (!job.videoUrl) {
+        const videoUrl = videoUrlFrom(job);
+        if (!videoUrl) {
           throw new Error("The provider completed the job without returning a video URL.");
         }
         return {
           previewImage: job.previewImage || request.image,
-          videoUrl: job.videoUrl,
+          videoUrl,
           jobId: created.jobId,
+          motionPreset: request.motionPreset,
           demo: false,
         };
       }

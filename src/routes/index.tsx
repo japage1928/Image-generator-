@@ -35,6 +35,7 @@ import {
   creditCost,
   type AspectRatio,
   type Duration,
+  type MotionPreset,
   type Project,
   type Quality,
 } from "@/lib/motionforge/types";
@@ -71,6 +72,40 @@ const QUALITIES: Array<{ value: Quality; label: string }> = [
   { value: "standard", label: "Standard 720p" },
   { value: "high", label: "High 1080p" },
 ];
+const MOTION_PRESETS: Array<{ value: MotionPreset; label: string; prompt: string }> = [
+  {
+    value: "push-in",
+    label: "Push in",
+    prompt: "Slow cinematic push-in toward the subject with gentle depth.",
+  },
+  {
+    value: "pan",
+    label: "Pan",
+    prompt: "Smooth lateral camera pan across the scene with controlled parallax.",
+  },
+  {
+    value: "orbit",
+    label: "Orbit",
+    prompt: "Subtle three-quarter orbit around the subject with stable perspective.",
+  },
+  {
+    value: "parallax",
+    label: "Parallax",
+    prompt: "Layered 2.5D parallax: foreground, subject, and background move at different speeds.",
+  },
+  {
+    value: "handheld",
+    label: "Handheld",
+    prompt: "Restrained handheld camera sway with natural micro-movement.",
+  },
+];
+const MOTION_PREVIEW_CLASS: Record<MotionPreset, string> = {
+  "push-in": "motion-preview-push",
+  pan: "motion-preview-pan",
+  orbit: "motion-preview-orbit",
+  parallax: "motion-preview-parallax",
+  handheld: "motion-preview-handheld",
+};
 
 function StudioPage() {
   const { projects, usage, addProject, spendCredits } = useMotionForge();
@@ -83,6 +118,7 @@ function StudioPage() {
   const [ratio, setRatio] = useState<AspectRatio>("16:9");
   const [quality, setQuality] = useState<Quality>("standard");
   const [strength, setStrength] = useState(50);
+  const [motionPreset, setMotionPreset] = useState<MotionPreset>("push-in");
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [dragging, setDragging] = useState(false);
 
@@ -157,7 +193,15 @@ function StudioPage() {
 
     try {
       const output = await generationService.generate(
-        { image, prompt, duration, aspectRatio: ratio, quality, motionStrength: strength },
+        {
+          image,
+          prompt,
+          duration,
+          aspectRatio: ratio,
+          quality,
+          motionStrength: strength,
+          motionPreset,
+        },
         (percent, currentStage) => {
           setProgress(percent);
           setStage(currentStage);
@@ -173,6 +217,7 @@ function StudioPage() {
         aspectRatio: ratio,
         quality,
         motionStrength: strength,
+        motionPreset,
         credits: cost,
         createdAt: new Date().toISOString(),
         sourceImage: output.previewImage,
@@ -224,6 +269,7 @@ function StudioPage() {
   function createVariant() {
     if (!result) return;
     setPrompt(result.prompt);
+    if (result.motionPreset) setMotionPreset(result.motionPreset);
     setStatus("idle");
     setProgress(0);
     setResult(null);
@@ -237,14 +283,17 @@ function StudioPage() {
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:py-10">
       <header className="mb-8">
         <Badge variant="outline" className="mb-3 border-primary/40 text-primary">
-          <Sparkles className="mr-1 size-3" aria-hidden /> Demo mode
+          <Sparkles className="mr-1 size-3" aria-hidden />
+          {generationService.isDemo ? "Demo mode" : "Live generation"}
         </Badge>
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
           Turn an image into motion.
         </h1>
         <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
           Upload a still, describe how it should move, and render a short clip. Output in this build
-          is generated locally and labelled as a demo render.
+          {generationService.isDemo
+            ? "Output is generated locally as a motion preview until a provider is connected."
+            : "Your image is sent to the configured image-to-video workflow for rendering."}
         </p>
       </header>
 
@@ -347,6 +396,30 @@ function StudioPage() {
               placeholder="Describe the movement: camera, subject, atmosphere. e.g. slow push-in as fog drifts across the ridge."
               className="mt-2 resize-none bg-elevated/50"
             />
+            <div className="mt-4">
+              <Label className="text-xs font-medium text-muted-foreground">Motion style</Label>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {MOTION_PRESETS.map((preset) => (
+                  <button
+                    key={preset.value}
+                    type="button"
+                    aria-pressed={motionPreset === preset.value}
+                    onClick={() => {
+                      setMotionPreset(preset.value);
+                      if (!prompt.trim()) setPrompt(preset.prompt);
+                    }}
+                    className={cn(
+                      "rounded-full border px-3 py-1.5 text-xs transition-colors",
+                      motionPreset === preset.value
+                        ? "border-primary bg-primary/15 text-foreground"
+                        : "border-border bg-elevated/60 text-muted-foreground hover:border-primary/50 hover:text-foreground",
+                    )}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="mt-3 flex flex-wrap gap-2">
               {SUGGESTIONS.map((s) => (
                 <button
@@ -491,7 +564,7 @@ function StudioPage() {
               <span className="text-sm font-medium">Preview</span>
               {result && (
                 <Badge variant="outline" className="border-cyan/40 text-cyan">
-                  Demo render
+                  {result.demo ? "Demo preview" : "Live render"}
                 </Badge>
               )}
             </div>
@@ -518,7 +591,10 @@ function StudioPage() {
                     key={replayKey}
                     src={result.sourceImage}
                     alt={`Demo render preview for ${result.title}`}
-                    className="size-full animate-kenburns object-cover"
+                    className={cn(
+                      "size-full object-cover",
+                      MOTION_PREVIEW_CLASS[result.motionPreset ?? "push-in"],
+                    )}
                   />
                 ) : status === "running" ? (
                   <div className="absolute inset-0 grid place-items-center overflow-hidden">
@@ -527,7 +603,10 @@ function StudioPage() {
                         src={image}
                         alt=""
                         aria-hidden
-                        className="absolute inset-0 size-full object-cover opacity-25 blur-sm"
+                        className={cn(
+                          "absolute inset-0 size-full object-cover opacity-25 blur-sm",
+                          MOTION_PREVIEW_CLASS[motionPreset],
+                        )}
                       />
                     )}
                     <div className="relative z-10 w-full px-6 text-center">
@@ -571,8 +650,9 @@ function StudioPage() {
               {status === "done" && result ? (
                 <div className="mt-4 space-y-3">
                   <p className="text-xs leading-relaxed text-muted-foreground">
-                    Demo render — animated locally from your image. Connect a video provider to
-                    produce a downloadable MP4.
+                    {result.demo
+                      ? "Demo preview — animated locally from your image. Connect a video provider to produce a downloadable MP4."
+                      : "Live render returned by the configured image-to-video provider."}
                   </p>
                   <div className="grid grid-cols-2 gap-2">
                     <Button variant="secondary" onClick={() => setReplayKey((k) => k + 1)}>

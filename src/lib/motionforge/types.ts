@@ -2,6 +2,7 @@ export type AspectRatio = "9:16" | "1:1" | "16:9";
 export type Duration = 5 | 10;
 export type Quality = "standard" | "high";
 export type ProjectStatus = "queued" | "rendering" | "completed" | "failed";
+export type MotionPreset = "push-in" | "pan" | "orbit" | "parallax" | "handheld";
 
 export interface Project {
   id: string;
@@ -12,6 +13,7 @@ export interface Project {
   aspectRatio: AspectRatio;
   quality: Quality;
   motionStrength: number;
+  motionPreset?: MotionPreset;
   credits: number;
   createdAt: string;
   /** Data URL of the source image, when the user uploaded one. */
@@ -43,6 +45,7 @@ export interface GenerationSettings {
   aspectRatio: AspectRatio;
   quality: Quality;
   motionStrength: number;
+  motionPreset: MotionPreset;
 }
 
 export const ASPECT_CLASS: Record<AspectRatio, string> = {

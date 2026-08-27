@@ -1,8 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { buildMotionPlan } from "@/lib/motionforge/motion-plan";
+import type { MotionPreset } from "@/lib/motionforge/types";
 
 const MAX_IMAGE_DATA_URL_LENGTH = 5_000_000;
 const ALLOWED_RATIOS = new Set(["9:16", "1:1", "16:9"]);
 const ALLOWED_QUALITIES = new Set(["standard", "high"]);
+const ALLOWED_PRESETS = new Set(["push-in", "pan", "orbit", "parallax", "handheld"]);
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
@@ -25,6 +28,8 @@ export const Route = createFileRoute("/api/generations")({
         }
         const image = typeof body.image === "string" ? body.image : "";
         const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
+        const motionPreset = typeof body.motionPreset === "string" ? body.motionPreset : "";
+        const motionStrength = typeof body.motionStrength === "number" ? body.motionStrength : 50;
         if (!image.startsWith("data:image/") || image.length > MAX_IMAGE_DATA_URL_LENGTH)
           return jsonError("Image data is missing or too large.", 400);
         if (!prompt || prompt.length > 2000)
@@ -35,14 +40,25 @@ export const Route = createFileRoute("/api/generations")({
           return jsonError("Unsupported aspect ratio.", 400);
         if (typeof body.quality !== "string" || !ALLOWED_QUALITIES.has(body.quality))
           return jsonError("Unsupported quality.", 400);
+        if (!ALLOWED_PRESETS.has(motionPreset)) return jsonError("Unsupported motion style.", 400);
+        if (!Number.isFinite(motionStrength) || motionStrength < 10 || motionStrength > 100)
+          return jsonError("Motion strength must be between 10 and 100.", 400);
         try {
+          const motionPlan = buildMotionPlan(prompt, motionPreset as MotionPreset, motionStrength);
           const upstream = await fetch(webhook, {
             method: "POST",
             headers: {
               "content-type": "application/json",
               "x-motionforge-secret": secret("N8N_WEBHOOK_SECRET") ?? "",
             },
-            body: JSON.stringify({ ...body, prompt, requestId: crypto.randomUUID() }),
+            body: JSON.stringify({
+              ...body,
+              prompt,
+              motionStrength,
+              motionPreset,
+              motionPlan,
+              requestId: crypto.randomUUID(),
+            }),
           });
           const payload = (await upstream.json().catch(() => ({}))) as Record<string, unknown>;
           if (!upstream.ok)

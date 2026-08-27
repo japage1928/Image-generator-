@@ -40,10 +40,13 @@ N8N_STATUS_WEBHOOK_URL=https://n8n.example.com/webhook/motionforge-status
 N8N_WEBHOOK_SECRET=replace-me
 ```
 
-The generation workflow must return `{ "jobId": "..." }`. The status workflow
+The generation workflow may return `{ "jobId": "..." }` for an asynchronous
+job, or a completed `{ "videoUrl": "..." }` response. The status workflow
 receives `?jobId=...` and must return `{ status, progress, stage, videoUrl }`
-when complete. The server routes validate the request and keep the n8n URL and
-secret out of the browser.
+when complete. `video_url`, `url`, and a string/object `output` are also
+accepted for compatibility with the existing Video Studio workflow. The
+server routes validate the request and keep the n8n URL and secret out of the
+browser.
 
 Before accepting paid users, replace the demo localStorage credit ledger with
 authenticated durable storage. Client-side credits are suitable for the demo

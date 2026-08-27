@@ -24,6 +24,7 @@ import {
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useMotionForge } from "@/lib/motionforge/store";
+import { generationService } from "@/lib/motionforge/generation-service";
 
 interface NavItem {
   to: string;
@@ -168,9 +169,13 @@ export function AppShell({ children }: { children: ReactNode }) {
         <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-60 shrink-0 border-r border-border bg-sidebar p-4 lg:block">
           <NavLinks />
           <div className="mt-6 rounded-xl border border-border bg-surface p-3">
-            <p className="text-xs font-medium text-foreground">Demo mode</p>
+            <p className="text-xs font-medium text-foreground">
+              {generationService.isDemo ? "Demo mode" : "Live generation"}
+            </p>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              Renders are produced locally and labelled as demo output. No AI provider is connected.
+              {generationService.isDemo
+                ? "Renders are produced locally. Connect n8n for real video output."
+                : "Jobs are sent to the configured image-to-video workflow."}
             </p>
           </div>
         </aside>
