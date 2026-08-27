@@ -18,6 +18,7 @@ export interface GenerationResult {
   previewImage: string;
   /** No provider is connected yet, so this is always undefined in demo mode. */
   videoUrl?: string;
+  jobId?: string;
   demo: boolean;
 }
 
@@ -57,4 +58,73 @@ export const demoGenerationService: GenerationService = {
   },
 };
 
-export const generationService: GenerationService = demoGenerationService;
+const LIVE_ENDPOINT = "/api/generations";
+
+type JobResponse = {
+  jobId?: string;
+  status?: "queued" | "running" | "completed" | "failed";
+  progress?: number;
+  stage?: string;
+  videoUrl?: string;
+  previewImage?: string;
+  error?: string;
+};
+
+async function readJson(response: Response): Promise<JobResponse> {
+  const body = (await response.json().catch(() => ({}))) as JobResponse;
+  if (!response.ok)
+    throw new Error(body.error || `Generation request failed (${response.status}).`);
+  return body;
+}
+
+const liveGenerationService: GenerationService = {
+  isDemo: false,
+  async generate(request, onProgress, signal) {
+    const response = await fetch(LIVE_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+      signal,
+    });
+    const created = await readJson(response);
+    if (!created.jobId) throw new Error("The generation service did not return a job ID.");
+
+    onProgress(created.progress ?? 5, created.stage ?? "Queued");
+    while (true) {
+      await new Promise<void>((resolve, reject) => {
+        const timer = window.setTimeout(resolve, 3500);
+        signal?.addEventListener(
+          "abort",
+          () => {
+            window.clearTimeout(timer);
+            reject(new Error("Generation cancelled."));
+          },
+          { once: true },
+        );
+      });
+      const jobResponse = await fetch(`${LIVE_ENDPOINT}/${encodeURIComponent(created.jobId)}`, {
+        signal,
+      });
+      const job = await readJson(jobResponse);
+      onProgress(job.progress ?? 20, job.stage ?? "Rendering");
+      if (job.status === "failed") {
+        throw new Error(job.error || "The provider failed to render this video.");
+      }
+      if (job.status === "completed") {
+        if (!job.videoUrl) {
+          throw new Error("The provider completed the job without returning a video URL.");
+        }
+        return {
+          previewImage: job.previewImage || request.image,
+          videoUrl: job.videoUrl,
+          jobId: created.jobId,
+          demo: false,
+        };
+      }
+    }
+  },
+};
+
+/** Demo remains the safe local default. Set VITE_GENERATION_MODE=live after n8n is configured. */
+export const generationService: GenerationService =
+  import.meta.env.VITE_GENERATION_MODE === "live" ? liveGenerationService : demoGenerationService;

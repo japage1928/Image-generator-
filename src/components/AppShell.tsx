@@ -135,7 +135,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                   aria-label="Account menu"
                 >
                   <Avatar className="size-8">
-                    <AvatarFallback className="bg-primary/20 text-xs text-primary">JP</AvatarFallback>
+                    <AvatarFallback className="bg-primary/20 text-xs text-primary">
+                      JP
+                    </AvatarFallback>
                   </Avatar>
                 </button>
               </DropdownMenuTrigger>

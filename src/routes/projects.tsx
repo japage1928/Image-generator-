@@ -45,8 +45,22 @@ function ProjectsPage() {
 
   function download(id: string) {
     const project = projects.find((p) => p.id === id);
+    if (project?.videoUrl) {
+      const link = document.createElement("a");
+      link.href = project.videoUrl;
+      link.download = `${project.title.replace(/\s+/g, "-").toLowerCase()}.mp4`;
+      link.target = "_blank";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success("Download started");
+      return;
+    }
     if (project?.sourceImage) {
-      downloadDataUrl(project.sourceImage, `${project.title.replace(/\s+/g, "-").toLowerCase()}.jpg`);
+      downloadDataUrl(
+        project.sourceImage,
+        `${project.title.replace(/\s+/g, "-").toLowerCase()}.jpg`,
+      );
       toast.success("Downloaded demo frame", {
         description: "Video export needs a connected provider.",
       });
@@ -111,7 +125,14 @@ function ProjectsPage() {
           {filtered.map((p) => (
             <li key={p.id} className="panel overflow-hidden">
               <div className="relative aspect-video bg-elevated/60">
-                {p.sourceImage ? (
+                {p.videoUrl ? (
+                  <video
+                    src={p.videoUrl}
+                    poster={p.sourceImage}
+                    controls
+                    className="size-full object-cover"
+                  />
+                ) : p.sourceImage ? (
                   <img
                     src={p.sourceImage}
                     alt={`Thumbnail for ${p.title}`}

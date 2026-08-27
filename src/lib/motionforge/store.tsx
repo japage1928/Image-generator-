@@ -9,7 +9,7 @@ import {
 } from "react";
 import type { CreditTransaction, Project, UsageState } from "./types";
 
-const STORAGE_KEY = "motionforge.state.v1";
+const STORAGE_KEY = "motionforge.state.v2";
 
 interface StoredState {
   projects: Project[];
@@ -69,22 +69,10 @@ function defaultState(): StoredState {
     ],
     usage: {
       plan: "Free",
-      creditsTotal: 12,
-      creditsUsed: 5,
+      creditsTotal: 2,
+      creditsUsed: 0,
       transactions: [
-        {
-          id: "tx-1",
-          label: "Render — Product turntable (10s, high)",
-          amount: -4,
-          createdAt: iso(3, 15),
-        },
-        {
-          id: "tx-2",
-          label: "Render — Neon alley pan (5s, standard)",
-          amount: -1,
-          createdAt: iso(1, 21),
-        },
-        { id: "tx-3", label: "Free plan monthly credits", amount: 12, createdAt: iso(8, 10) },
+        { id: "tx-1", label: "Free plan — 2 video credits", amount: 2, createdAt: iso(8, 10) },
       ],
     },
   };
@@ -164,7 +152,15 @@ export function MotionForgeProvider({ children }: { children: ReactNode }) {
   const resetDemoData = useCallback(() => setState(defaultState()), []);
 
   const value = useMemo<StoreValue>(
-    () => ({ ...state, ready, addProject, updateProject, removeProject, spendCredits, resetDemoData }),
+    () => ({
+      ...state,
+      ready,
+      addProject,
+      updateProject,
+      removeProject,
+      spendCredits,
+      resetDemoData,
+    }),
     [state, ready, addProject, updateProject, removeProject, spendCredits, resetDemoData],
   );
 

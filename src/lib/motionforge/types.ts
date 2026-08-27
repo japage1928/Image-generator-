@@ -18,6 +18,8 @@ export interface Project {
   sourceImage?: string;
   /** True when the render was produced by the local demo pipeline. */
   demo: boolean;
+  /** Provider output URL when a live generation has completed. */
+  videoUrl?: string;
   error?: string;
 }
 

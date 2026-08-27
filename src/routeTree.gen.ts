@@ -10,11 +10,21 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BillingRouteImport } from './routes/billing'
 import { Route as ProjectsRouteImport } from './routes/projects'
+import { Route as SupportRouteImport } from './routes/support'
+import { Route as UsageRouteImport } from './routes/usage'
+import { Route as ApiGenerationsRouteImport } from './routes/api/generations'
+import { Route as ApiGenerationsJobIdRouteImport } from './routes/api/generations/$jobId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BillingRoute = BillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProjectsRoute = ProjectsRouteImport.update({
@@ -22,31 +32,92 @@ const ProjectsRoute = ProjectsRouteImport.update({
   path: '/projects',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UsageRoute = UsageRouteImport.update({
+  id: '/usage',
+  path: '/usage',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGenerationsRoute = ApiGenerationsRouteImport.update({
+  id: '/api/generations',
+  path: '/api/generations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGenerationsJobIdRoute = ApiGenerationsJobIdRouteImport.update({
+  id: '/$jobId',
+  path: '/$jobId',
+  getParentRoute: () => ApiGenerationsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/billing': typeof BillingRoute
   '/projects': typeof ProjectsRoute
+  '/support': typeof SupportRoute
+  '/usage': typeof UsageRoute
+  '/api/generations': typeof ApiGenerationsRouteWithChildren
+  '/api/generations/$jobId': typeof ApiGenerationsJobIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/billing': typeof BillingRoute
   '/projects': typeof ProjectsRoute
+  '/support': typeof SupportRoute
+  '/usage': typeof UsageRoute
+  '/api/generations': typeof ApiGenerationsRouteWithChildren
+  '/api/generations/$jobId': typeof ApiGenerationsJobIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/billing': typeof BillingRoute
   '/projects': typeof ProjectsRoute
+  '/support': typeof SupportRoute
+  '/usage': typeof UsageRoute
+  '/api/generations': typeof ApiGenerationsRouteWithChildren
+  '/api/generations/$jobId': typeof ApiGenerationsJobIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/projects'
+  fullPaths:
+    | '/'
+    | '/billing'
+    | '/projects'
+    | '/support'
+    | '/usage'
+    | '/api/generations'
+    | '/api/generations/$jobId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/projects'
-  id: '__root__' | '/' | '/projects'
+  to:
+    | '/'
+    | '/billing'
+    | '/projects'
+    | '/support'
+    | '/usage'
+    | '/api/generations'
+    | '/api/generations/$jobId'
+  id:
+    | '__root__'
+    | '/'
+    | '/billing'
+    | '/projects'
+    | '/support'
+    | '/usage'
+    | '/api/generations'
+    | '/api/generations/$jobId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BillingRoute: typeof BillingRoute
   ProjectsRoute: typeof ProjectsRoute
+  SupportRoute: typeof SupportRoute
+  UsageRoute: typeof UsageRoute
+  ApiGenerationsRoute: typeof ApiGenerationsRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -58,6 +129,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/billing': {
+      id: '/billing'
+      path: '/billing'
+      fullPath: '/billing'
+      preLoaderRoute: typeof BillingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/projects': {
       id: '/projects'
       path: '/projects'
@@ -65,12 +143,56 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/usage': {
+      id: '/usage'
+      path: '/usage'
+      fullPath: '/usage'
+      preLoaderRoute: typeof UsageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/generations': {
+      id: '/api/generations'
+      path: '/api/generations'
+      fullPath: '/api/generations'
+      preLoaderRoute: typeof ApiGenerationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/generations/$jobId': {
+      id: '/api/generations/$jobId'
+      path: '/$jobId'
+      fullPath: '/api/generations/$jobId'
+      preLoaderRoute: typeof ApiGenerationsJobIdRouteImport
+      parentRoute: typeof ApiGenerationsRoute
+    }
   }
 }
 
+interface ApiGenerationsRouteChildren {
+  ApiGenerationsJobIdRoute: typeof ApiGenerationsJobIdRoute
+}
+
+const ApiGenerationsRouteChildren: ApiGenerationsRouteChildren = {
+  ApiGenerationsJobIdRoute: ApiGenerationsJobIdRoute,
+}
+
+const ApiGenerationsRouteWithChildren = ApiGenerationsRoute._addFileChildren(
+  ApiGenerationsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BillingRoute: BillingRoute,
   ProjectsRoute: ProjectsRoute,
+  SupportRoute: SupportRoute,
+  UsageRoute: UsageRoute,
+  ApiGenerationsRoute: ApiGenerationsRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -21,11 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import {
   downloadDataUrl,
@@ -98,6 +94,7 @@ function StudioPage() {
   const [replayKey, setReplayKey] = useState(0);
 
   const cost = creditCost(duration, quality);
+  const isFree = usage.plan === "Free";
   const remaining = Math.max(0, usage.creditsTotal - usage.creditsUsed);
   const recent = projects.slice(0, 3);
 
@@ -179,6 +176,7 @@ function StudioPage() {
         credits: cost,
         createdAt: new Date().toISOString(),
         sourceImage: output.previewImage,
+        videoUrl: output.videoUrl,
         demo: output.demo,
       };
       addProject(project);
@@ -186,8 +184,10 @@ function StudioPage() {
       setResult(project);
       setStatus("done");
       setReplayKey((k) => k + 1);
-      toast.success("Demo render complete", {
-        description: "Produced locally — connect a provider for real video output.",
+      toast.success(output.demo ? "Demo render complete" : "Video render complete", {
+        description: output.demo
+          ? "Produced locally — connect a provider for real video output."
+          : "Your video is ready to preview and download.",
       });
     } catch (e) {
       const message = e instanceof Error ? e.message : "Generation failed.";
@@ -198,6 +198,17 @@ function StudioPage() {
   }
 
   function download() {
+    if (result?.videoUrl) {
+      const link = document.createElement("a");
+      link.href = result.videoUrl;
+      link.download = `${result.title.replace(/\s+/g, "-").toLowerCase()}.mp4`;
+      link.target = "_blank";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success("Download started");
+      return;
+    }
     if (result?.sourceImage) {
       downloadDataUrl(result.sourceImage, `${result.title.replace(/\s+/g, "-").toLowerCase()}.jpg`);
       toast.success("Downloaded demo frame", {
@@ -216,7 +227,9 @@ function StudioPage() {
     setStatus("idle");
     setProgress(0);
     setResult(null);
-    toast("Variant ready to render", { description: "Tweak the prompt or settings, then generate." });
+    toast("Variant ready to render", {
+      description: "Tweak the prompt or settings, then generate.",
+    });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -353,7 +366,7 @@ function StudioPage() {
             <fieldset>
               <legend className="text-sm font-medium">Duration</legend>
               <div className="mt-2 flex gap-2">
-                {DURATIONS.map((d) => (
+                {(isFree ? [5] : DURATIONS).map((d) => (
                   <button
                     key={d}
                     type="button"
@@ -429,6 +442,7 @@ function StudioPage() {
                         key={q.value}
                         type="button"
                         aria-pressed={quality === q.value}
+                        disabled={isFree && q.value === "high"}
                         onClick={() => setQuality(q.value)}
                         className={cn(
                           "flex-1 rounded-lg border px-3 py-2 text-sm transition-colors",
@@ -489,7 +503,17 @@ function StudioPage() {
                   ASPECT_CLASS[ratio],
                 )}
               >
-                {status === "done" && result?.sourceImage ? (
+                {status === "done" && result?.videoUrl ? (
+                  <video
+                    key={replayKey}
+                    src={result.videoUrl}
+                    poster={result.sourceImage}
+                    controls
+                    autoPlay
+                    loop
+                    className="size-full object-cover"
+                  />
+                ) : status === "done" && result?.sourceImage ? (
                   <img
                     key={replayKey}
                     src={result.sourceImage}
