@@ -114,7 +114,7 @@ const MOTION_PREVIEW_CLASS: Record<MotionPreset, string> = {
 };
 
 function StudioPage() {
-  const { projects, usage, addProject, spendCredits } = useMotionForge();
+  const { projects, usage, addProject, spendCredits, refreshRemote } = useMotionForge();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [image, setImage] = useState<string | null>(null);
@@ -214,7 +214,7 @@ function StudioPage() {
         },
       );
 
-      const project: Project = {
+      const fallbackProject: Project = {
         id: `p-${Date.now()}`,
         title: prompt.trim().split(/\s+/).slice(0, 5).join(" ") || "Untitled render",
         prompt: prompt.trim(),
@@ -230,8 +230,10 @@ function StudioPage() {
         videoUrl: output.videoUrl,
         demo: output.demo,
       };
+      const project = output.project || fallbackProject;
       addProject(project);
       spendCredits(cost, `Render — ${project.title} (${duration}s, ${quality})`);
+      if (!output.demo) void refreshRemote();
       setResult(project);
       setStatus("done");
       setReplayKey((k) => k + 1);

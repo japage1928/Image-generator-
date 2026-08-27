@@ -25,6 +25,7 @@ import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/s
 import { cn } from "@/lib/utils";
 import { useMotionForge } from "@/lib/motionforge/store";
 import { generationService } from "@/lib/motionforge/generation-service";
+import { useAuth } from "@/lib/auth/AuthProvider";
 
 interface NavItem {
   to: string;
@@ -81,6 +82,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { usage } = useMotionForge();
+  const { user, signOut } = useAuth();
   const [open, setOpen] = useState(false);
   const remaining = Math.max(0, usage.creditsTotal - usage.creditsUsed);
 
@@ -137,28 +139,41 @@ export function AppShell({ children }: { children: ReactNode }) {
                 >
                   <Avatar className="size-8">
                     <AvatarFallback className="bg-primary/20 text-xs text-primary">
-                      JP
+                      {user ? (user.email || "U").slice(0, 2).toUpperCase() : "?"}
                     </AvatarFallback>
                   </Avatar>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>
-                  <span className="block text-sm">Demo account</span>
+                  <span className="block truncate text-sm">{user?.email || "Guest"}</span>
                   <span className="block text-xs font-normal text-muted-foreground">
-                    {usage.plan} plan · no sign-in yet
+                    {user ? `${usage.plan} plan` : "Sign in to save your work"}
                   </span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/usage">Usage & credits</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/billing">Billing</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/support">Support</Link>
-                </DropdownMenuItem>
+                {user ? (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link to="/account">Account settings</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/usage">Usage & credits</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/billing">Billing</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/support">Support</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => void signOut()}>Sign out</DropdownMenuItem>
+                  </>
+                ) : (
+                  <DropdownMenuItem asChild>
+                    <Link to="/login">Sign in</Link>
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

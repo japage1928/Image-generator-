@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Download, Film, Search } from "lucide-react";
+import { Download, Film, Loader2, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import {
 import { StatusPill } from "./index";
 import { downloadDataUrl, formatDate, useMotionForge } from "@/lib/motionforge/store";
 import type { ProjectStatus } from "@/lib/motionforge/types";
+import { motionforgeFetch } from "@/lib/motionforge/api-client";
 
 export const Route = createFileRoute("/projects")({
   head: () => ({
@@ -29,9 +30,10 @@ export const Route = createFileRoute("/projects")({
 });
 
 function ProjectsPage() {
-  const { projects } = useMotionForge();
+  const { projects, refreshRemote } = useMotionForge();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<ProjectStatus | "all">("all");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const filtered = useMemo(
     () =>
@@ -71,11 +73,25 @@ function ProjectsPage() {
     }
   }
 
+  async function removeProject(id: string) {
+    setDeletingId(id);
+    try {
+      await motionforgeFetch(`/api/projects/${id}`, { method: "DELETE" });
+      await refreshRemote();
+      toast.success("Project deleted");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not delete project");
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
       <h1 className="text-2xl font-semibold tracking-tight">Projects</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Every render you create is stored on this device. Demo projects are labelled.
+        Your renders are synced to your account. Demo projects are labelled while you configure a
+        provider.
       </p>
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -166,6 +182,19 @@ function ProjectsPage() {
                     aria-label={`Download ${p.title}`}
                   >
                     <Download className="size-4" aria-hidden />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => removeProject(p.id)}
+                    disabled={deletingId === p.id}
+                    aria-label={`Delete ${p.title}`}
+                  >
+                    {deletingId === p.id ? (
+                      <Loader2 className="size-4 animate-spin" aria-hidden />
+                    ) : (
+                      <Trash2 className="size-4" aria-hidden />
+                    )}
                   </Button>
                 </div>
               </div>

@@ -1,5 +1,8 @@
 import type { GenerationSettings } from "./types";
 import { buildMotionPlan } from "./motion-plan";
+import { getSession } from "@/lib/auth/supabase";
+import { projectFromApi } from "./api-client";
+import type { Project } from "./types";
 
 /**
  * The demo service is local and intentionally honest. The live service submits
@@ -18,6 +21,7 @@ export interface GenerationResult {
   videoUrl?: string;
   jobId?: string;
   motionPreset?: GenerationSettings["motionPreset"];
+  project?: Project;
   demo: boolean;
 }
 
@@ -74,6 +78,7 @@ type JobResponse = {
   output?: string | { url?: string };
   previewImage?: string;
   error?: string;
+  project?: Record<string, unknown>;
 };
 
 function videoUrlFrom(payload: JobResponse): string | undefined {
@@ -96,9 +101,14 @@ async function readJson(response: Response): Promise<JobResponse> {
 const liveGenerationService: GenerationService = {
   isDemo: false,
   async generate(request, onProgress, signal) {
+    const session = await getSession();
     const response = await fetch(LIVE_ENDPOINT, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        "Idempotency-Key": crypto.randomUUID(),
+      },
       body: JSON.stringify({
         ...request,
         motionPlan: buildMotionPlan(request.prompt, request.motionPreset, request.motionStrength),
@@ -112,6 +122,17 @@ const liveGenerationService: GenerationService = {
       return {
         previewImage: created.previewImage || request.image,
         videoUrl: immediateVideoUrl,
+        project: created.project
+          ? projectFromApi(created.project as Record<string, unknown>, {
+              prompt: request.prompt,
+              duration: request.duration,
+              aspectRatio: request.aspectRatio,
+              quality: request.quality,
+              motionStrength: request.motionStrength,
+              motionPreset: request.motionPreset,
+              sourceImage: request.image,
+            })
+          : undefined,
         demo: false,
       };
     }
@@ -149,6 +170,7 @@ const liveGenerationService: GenerationService = {
           videoUrl,
           jobId: created.jobId,
           motionPreset: request.motionPreset,
+          project: job.project ? projectFromApi(job.project as Record<string, unknown>) : undefined,
           demo: false,
         };
       }

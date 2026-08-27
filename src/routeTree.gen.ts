@@ -10,21 +10,40 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AccountRouteImport } from './routes/account'
 import { Route as BillingRouteImport } from './routes/billing'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as UsageRouteImport } from './routes/usage'
+import { Route as ApiAccountRouteImport } from './routes/api/account'
 import { Route as ApiGenerationsRouteImport } from './routes/api/generations'
+import { Route as ApiProjectsRouteImport } from './routes/api/projects'
+import { Route as ApiSupportRouteImport } from './routes/api/support'
+import { Route as ApiBillingCheckoutRouteImport } from './routes/api/billing/checkout'
+import { Route as ApiBillingPortalRouteImport } from './routes/api/billing/portal'
+import { Route as ApiBillingWebhookRouteImport } from './routes/api/billing/webhook'
 import { Route as ApiGenerationsJobIdRouteImport } from './routes/api/generations/$jobId'
+import { Route as ApiProjectsProjectIdRouteImport } from './routes/api/projects/$projectId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BillingRoute = BillingRouteImport.update({
   id: '/billing',
   path: '/billing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProjectsRoute = ProjectsRouteImport.update({
@@ -42,9 +61,39 @@ const UsageRoute = UsageRouteImport.update({
   path: '/usage',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAccountRoute = ApiAccountRouteImport.update({
+  id: '/api/account',
+  path: '/api/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGenerationsRoute = ApiGenerationsRouteImport.update({
   id: '/api/generations',
   path: '/api/generations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiProjectsRoute = ApiProjectsRouteImport.update({
+  id: '/api/projects',
+  path: '/api/projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSupportRoute = ApiSupportRouteImport.update({
+  id: '/api/support',
+  path: '/api/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBillingCheckoutRoute = ApiBillingCheckoutRouteImport.update({
+  id: '/api/billing/checkout',
+  path: '/api/billing/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBillingPortalRoute = ApiBillingPortalRouteImport.update({
+  id: '/api/billing/portal',
+  path: '/api/billing/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBillingWebhookRoute = ApiBillingWebhookRouteImport.update({
+  id: '/api/billing/webhook',
+  path: '/api/billing/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGenerationsJobIdRoute = ApiGenerationsJobIdRouteImport.update({
@@ -52,72 +101,139 @@ const ApiGenerationsJobIdRoute = ApiGenerationsJobIdRouteImport.update({
   path: '/$jobId',
   getParentRoute: () => ApiGenerationsRoute,
 } as any)
+const ApiProjectsProjectIdRoute = ApiProjectsProjectIdRouteImport.update({
+  id: '/$projectId',
+  path: '/$projectId',
+  getParentRoute: () => ApiProjectsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/billing': typeof BillingRoute
+  '/login': typeof LoginRoute
   '/projects': typeof ProjectsRoute
   '/support': typeof SupportRoute
   '/usage': typeof UsageRoute
+  '/api/account': typeof ApiAccountRoute
   '/api/generations': typeof ApiGenerationsRouteWithChildren
+  '/api/projects': typeof ApiProjectsRouteWithChildren
+  '/api/support': typeof ApiSupportRoute
+  '/api/billing/checkout': typeof ApiBillingCheckoutRoute
+  '/api/billing/portal': typeof ApiBillingPortalRoute
+  '/api/billing/webhook': typeof ApiBillingWebhookRoute
   '/api/generations/$jobId': typeof ApiGenerationsJobIdRoute
+  '/api/projects/$projectId': typeof ApiProjectsProjectIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/billing': typeof BillingRoute
+  '/login': typeof LoginRoute
   '/projects': typeof ProjectsRoute
   '/support': typeof SupportRoute
   '/usage': typeof UsageRoute
+  '/api/account': typeof ApiAccountRoute
   '/api/generations': typeof ApiGenerationsRouteWithChildren
+  '/api/projects': typeof ApiProjectsRouteWithChildren
+  '/api/support': typeof ApiSupportRoute
+  '/api/billing/checkout': typeof ApiBillingCheckoutRoute
+  '/api/billing/portal': typeof ApiBillingPortalRoute
+  '/api/billing/webhook': typeof ApiBillingWebhookRoute
   '/api/generations/$jobId': typeof ApiGenerationsJobIdRoute
+  '/api/projects/$projectId': typeof ApiProjectsProjectIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/billing': typeof BillingRoute
+  '/login': typeof LoginRoute
   '/projects': typeof ProjectsRoute
   '/support': typeof SupportRoute
   '/usage': typeof UsageRoute
+  '/api/account': typeof ApiAccountRoute
   '/api/generations': typeof ApiGenerationsRouteWithChildren
+  '/api/projects': typeof ApiProjectsRouteWithChildren
+  '/api/support': typeof ApiSupportRoute
+  '/api/billing/checkout': typeof ApiBillingCheckoutRoute
+  '/api/billing/portal': typeof ApiBillingPortalRoute
+  '/api/billing/webhook': typeof ApiBillingWebhookRoute
   '/api/generations/$jobId': typeof ApiGenerationsJobIdRoute
+  '/api/projects/$projectId': typeof ApiProjectsProjectIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/account'
     | '/billing'
+    | '/login'
     | '/projects'
     | '/support'
     | '/usage'
+    | '/api/account'
     | '/api/generations'
+    | '/api/projects'
+    | '/api/support'
+    | '/api/billing/checkout'
+    | '/api/billing/portal'
+    | '/api/billing/webhook'
     | '/api/generations/$jobId'
+    | '/api/projects/$projectId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/account'
     | '/billing'
+    | '/login'
     | '/projects'
     | '/support'
     | '/usage'
+    | '/api/account'
     | '/api/generations'
+    | '/api/projects'
+    | '/api/support'
+    | '/api/billing/checkout'
+    | '/api/billing/portal'
+    | '/api/billing/webhook'
     | '/api/generations/$jobId'
+    | '/api/projects/$projectId'
   id:
     | '__root__'
     | '/'
+    | '/account'
     | '/billing'
+    | '/login'
     | '/projects'
     | '/support'
     | '/usage'
+    | '/api/account'
     | '/api/generations'
+    | '/api/projects'
+    | '/api/support'
+    | '/api/billing/checkout'
+    | '/api/billing/portal'
+    | '/api/billing/webhook'
     | '/api/generations/$jobId'
+    | '/api/projects/$projectId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccountRoute: typeof AccountRoute
   BillingRoute: typeof BillingRoute
+  LoginRoute: typeof LoginRoute
   ProjectsRoute: typeof ProjectsRoute
   SupportRoute: typeof SupportRoute
   UsageRoute: typeof UsageRoute
+  ApiAccountRoute: typeof ApiAccountRoute
   ApiGenerationsRoute: typeof ApiGenerationsRouteWithChildren
+  ApiProjectsRoute: typeof ApiProjectsRouteWithChildren
+  ApiSupportRoute: typeof ApiSupportRoute
+  ApiBillingCheckoutRoute: typeof ApiBillingCheckoutRoute
+  ApiBillingPortalRoute: typeof ApiBillingPortalRoute
+  ApiBillingWebhookRoute: typeof ApiBillingWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -129,11 +245,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/billing': {
       id: '/billing'
       path: '/billing'
       fullPath: '/billing'
       preLoaderRoute: typeof BillingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/projects': {
@@ -157,11 +287,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UsageRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/account': {
+      id: '/api/account'
+      path: '/api/account'
+      fullPath: '/api/account'
+      preLoaderRoute: typeof ApiAccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/generations': {
       id: '/api/generations'
       path: '/api/generations'
       fullPath: '/api/generations'
       preLoaderRoute: typeof ApiGenerationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/projects': {
+      id: '/api/projects'
+      path: '/api/projects'
+      fullPath: '/api/projects'
+      preLoaderRoute: typeof ApiProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/support': {
+      id: '/api/support'
+      path: '/api/support'
+      fullPath: '/api/support'
+      preLoaderRoute: typeof ApiSupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/billing/checkout': {
+      id: '/api/billing/checkout'
+      path: '/api/billing/checkout'
+      fullPath: '/api/billing/checkout'
+      preLoaderRoute: typeof ApiBillingCheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/billing/portal': {
+      id: '/api/billing/portal'
+      path: '/api/billing/portal'
+      fullPath: '/api/billing/portal'
+      preLoaderRoute: typeof ApiBillingPortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/billing/webhook': {
+      id: '/api/billing/webhook'
+      path: '/api/billing/webhook'
+      fullPath: '/api/billing/webhook'
+      preLoaderRoute: typeof ApiBillingWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/generations/$jobId': {
@@ -170,6 +342,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/generations/$jobId'
       preLoaderRoute: typeof ApiGenerationsJobIdRouteImport
       parentRoute: typeof ApiGenerationsRoute
+    }
+    '/api/projects/$projectId': {
+      id: '/api/projects/$projectId'
+      path: '/$projectId'
+      fullPath: '/api/projects/$projectId'
+      preLoaderRoute: typeof ApiProjectsProjectIdRouteImport
+      parentRoute: typeof ApiProjectsRoute
     }
   }
 }
@@ -186,13 +365,33 @@ const ApiGenerationsRouteWithChildren = ApiGenerationsRoute._addFileChildren(
   ApiGenerationsRouteChildren,
 )
 
+interface ApiProjectsRouteChildren {
+  ApiProjectsProjectIdRoute: typeof ApiProjectsProjectIdRoute
+}
+
+const ApiProjectsRouteChildren: ApiProjectsRouteChildren = {
+  ApiProjectsProjectIdRoute: ApiProjectsProjectIdRoute,
+}
+
+const ApiProjectsRouteWithChildren = ApiProjectsRoute._addFileChildren(
+  ApiProjectsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccountRoute: AccountRoute,
   BillingRoute: BillingRoute,
+  LoginRoute: LoginRoute,
   ProjectsRoute: ProjectsRoute,
   SupportRoute: SupportRoute,
   UsageRoute: UsageRoute,
+  ApiAccountRoute: ApiAccountRoute,
   ApiGenerationsRoute: ApiGenerationsRouteWithChildren,
+  ApiProjectsRoute: ApiProjectsRouteWithChildren,
+  ApiSupportRoute: ApiSupportRoute,
+  ApiBillingCheckoutRoute: ApiBillingCheckoutRoute,
+  ApiBillingPortalRoute: ApiBillingPortalRoute,
+  ApiBillingWebhookRoute: ApiBillingWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

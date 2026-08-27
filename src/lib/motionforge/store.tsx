@@ -8,6 +8,9 @@ import {
   type ReactNode,
 } from "react";
 import type { CreditTransaction, Project, UsageState } from "./types";
+import { generationService } from "./generation-service";
+import { motionforgeFetch, projectFromApi } from "./api-client";
+import { useAuth } from "@/lib/auth/AuthProvider";
 
 const STORAGE_KEY = "motionforge.state.v2";
 
@@ -85,15 +88,18 @@ interface StoreValue extends StoredState {
   removeProject: (id: string) => void;
   spendCredits: (amount: number, label: string) => void;
   resetDemoData: () => void;
+  refreshRemote: () => Promise<void>;
 }
 
 const StoreContext = createContext<StoreValue | null>(null);
 
 export function MotionForgeProvider({ children }: { children: ReactNode }) {
+  const { user, loading: authLoading } = useAuth();
   const [state, setState] = useState<StoredState>(() => defaultState());
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState(generationService.isDemo ? false : !authLoading);
 
   useEffect(() => {
+    if (!generationService.isDemo) return;
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
@@ -107,13 +113,62 @@ export function MotionForgeProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || !generationService.isDemo) return;
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch {
       /* quota exceeded — keep the session working in memory */
     }
   }, [state, ready]);
+
+  const refreshRemote = useCallback(async () => {
+    if (generationService.isDemo || !user) return;
+    const [account, projectRows] = await Promise.all([
+      motionforgeFetch<{
+        plan: string;
+        credits: number;
+        usage?: { creditsGranted?: number; creditsUsed?: number };
+        transactions?: Array<{
+          id: string;
+          amount: number;
+          transaction_type: string;
+          created_at: string;
+        }>;
+      }>("/api/account"),
+      motionforgeFetch<{ projects: Array<Record<string, unknown>> }>("/api/projects"),
+    ]);
+    const transactions = (account.transactions || []).map((item) => ({
+      id: item.id,
+      amount: item.amount,
+      label: item.transaction_type.replaceAll("_", " "),
+      createdAt: item.created_at,
+    }));
+    setState({
+      projects: (projectRows.projects || []).map((project) => projectFromApi(project)),
+      usage: {
+        plan: account.plan,
+        creditsTotal: Number(account.usage?.creditsGranted || 0),
+        creditsUsed: Number(account.usage?.creditsUsed || 0),
+        transactions,
+      },
+    });
+    setReady(true);
+  }, [user]);
+
+  useEffect(() => {
+    if (generationService.isDemo) return;
+    if (authLoading) return;
+    if (!user) {
+      setState({
+        projects: [],
+        usage: { plan: "Free", creditsTotal: 0, creditsUsed: 0, transactions: [] },
+      });
+      setReady(true);
+      return;
+    }
+    setReady(false);
+    void refreshRemote().catch(() => setReady(true));
+  }, [authLoading, user, refreshRemote]);
 
   const addProject = useCallback((project: Project) => {
     setState((s) => ({ ...s, projects: [project, ...s.projects].slice(0, 24) }));
@@ -131,6 +186,7 @@ export function MotionForgeProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const spendCredits = useCallback((amount: number, label: string) => {
+    if (!generationService.isDemo) return;
     setState((s) => {
       const tx: CreditTransaction = {
         id: `tx-${Date.now()}`,
@@ -149,7 +205,9 @@ export function MotionForgeProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const resetDemoData = useCallback(() => setState(defaultState()), []);
+  const resetDemoData = useCallback(() => {
+    if (generationService.isDemo) setState(defaultState());
+  }, []);
 
   const value = useMemo<StoreValue>(
     () => ({
@@ -160,8 +218,18 @@ export function MotionForgeProvider({ children }: { children: ReactNode }) {
       removeProject,
       spendCredits,
       resetDemoData,
+      refreshRemote,
     }),
-    [state, ready, addProject, updateProject, removeProject, spendCredits, resetDemoData],
+    [
+      state,
+      ready,
+      addProject,
+      updateProject,
+      removeProject,
+      spendCredits,
+      resetDemoData,
+      refreshRemote,
+    ],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

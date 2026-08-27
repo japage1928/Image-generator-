@@ -44,7 +44,7 @@ export interface CreditTransaction {
 }
 
 export interface UsageState {
-  plan: "Free" | "Creator" | "Pro";
+  plan: string;
   creditsTotal: number;
   creditsUsed: number;
   transactions: CreditTransaction[];

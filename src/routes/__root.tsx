@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { MotionForgeProvider } from "@/lib/motionforge/store";
 import { AppShell } from "@/components/AppShell";
+import { AuthProvider } from "@/lib/auth/AuthProvider";
 
 function NotFoundComponent() {
   return (
@@ -124,13 +125,15 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <MotionForgeProvider>
-        <AppShell>
-          {/* Required: nested routes render here. */}
-          <Outlet />
-        </AppShell>
-        <Toaster position="top-center" />
-      </MotionForgeProvider>
+      <AuthProvider>
+        <MotionForgeProvider>
+          <AppShell>
+            {/* Required: nested routes render here. */}
+            <Outlet />
+          </AppShell>
+          <Toaster position="top-center" />
+        </MotionForgeProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
