@@ -60,10 +60,10 @@ export const Route = createFileRoute("/")({
 });
 
 const SUGGESTIONS = [
-  "Slow cinematic push-in with drifting dust",
-  "Gentle parallax, clouds moving left to right",
-  "Handheld sway with soft focus breathing",
-  "Orbit around the subject, studio light sweep",
+  "Make the subject breathe, blink, and shift naturally",
+  "Animate the person walking slowly while the background stays stable",
+  "Show the product being handled with believable moving parts",
+  "Animate wind moving hair, fabric, foliage, and drifting particles",
 ];
 
 const DURATIONS: Duration[] = [5, 10];
@@ -74,32 +74,38 @@ const QUALITIES: Array<{ value: Quality; label: string }> = [
 ];
 const MOTION_PRESETS: Array<{ value: MotionPreset; label: string; prompt: string }> = [
   {
-    value: "push-in",
-    label: "Push in",
-    prompt: "Slow cinematic push-in toward the subject with gentle depth.",
+    value: "bring-to-life",
+    label: "Bring to life",
+    prompt: "Make the subject breathe, blink, and shift naturally while staying recognizable.",
   },
   {
-    value: "pan",
-    label: "Pan",
-    prompt: "Smooth lateral camera pan across the scene with controlled parallax.",
+    value: "subject-action",
+    label: "Subject action",
+    prompt: "Animate the subject performing a clear, physically plausible action.",
   },
   {
-    value: "orbit",
-    label: "Orbit",
-    prompt: "Subtle three-quarter orbit around the subject with stable perspective.",
+    value: "product-demo",
+    label: "Product demo",
+    prompt:
+      "Animate the product in use with believable movement while preserving its exact design.",
   },
   {
-    value: "parallax",
-    label: "Parallax",
-    prompt: "Layered 2.5D parallax: foreground, subject, and background move at different speeds.",
+    value: "environment",
+    label: "Animate scene",
+    prompt: "Animate wind, water, smoke, light, foliage, or particles around the subject.",
   },
   {
-    value: "handheld",
-    label: "Handheld",
-    prompt: "Restrained handheld camera sway with natural micro-movement.",
+    value: "expression",
+    label: "Expression & gesture",
+    prompt: "Animate natural facial expression, blinking, breathing, and subtle gestures.",
   },
 ];
 const MOTION_PREVIEW_CLASS: Record<MotionPreset, string> = {
+  "bring-to-life": "motion-preview-life",
+  "subject-action": "motion-preview-action",
+  "product-demo": "motion-preview-product",
+  environment: "motion-preview-environment",
+  expression: "motion-preview-expression",
   "push-in": "motion-preview-push",
   pan: "motion-preview-pan",
   orbit: "motion-preview-orbit",

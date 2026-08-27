@@ -5,7 +5,18 @@ import type { MotionPreset } from "@/lib/motionforge/types";
 const MAX_IMAGE_DATA_URL_LENGTH = 5_000_000;
 const ALLOWED_RATIOS = new Set(["9:16", "1:1", "16:9"]);
 const ALLOWED_QUALITIES = new Set(["standard", "high"]);
-const ALLOWED_PRESETS = new Set(["push-in", "pan", "orbit", "parallax", "handheld"]);
+const ALLOWED_PRESETS = new Set([
+  "bring-to-life",
+  "subject-action",
+  "product-demo",
+  "environment",
+  "expression",
+  "push-in",
+  "pan",
+  "orbit",
+  "parallax",
+  "handheld",
+]);
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
@@ -53,7 +64,11 @@ export const Route = createFileRoute("/api/generations")({
             },
             body: JSON.stringify({
               ...body,
-              prompt,
+              // Keep the original prompt available, but make the canonical
+              // provider prompt the primary `prompt` field for existing n8n
+              // nodes that read only $json.prompt.
+              prompt: motionPlan.providerPrompt,
+              userPrompt: prompt,
               motionStrength,
               motionPreset,
               motionPlan,

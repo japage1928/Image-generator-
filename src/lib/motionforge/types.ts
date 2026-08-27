@@ -2,7 +2,18 @@ export type AspectRatio = "9:16" | "1:1" | "16:9";
 export type Duration = 5 | 10;
 export type Quality = "standard" | "high";
 export type ProjectStatus = "queued" | "rendering" | "completed" | "failed";
-export type MotionPreset = "push-in" | "pan" | "orbit" | "parallax" | "handheld";
+export type MotionPreset =
+  | "bring-to-life"
+  | "subject-action"
+  | "product-demo"
+  | "environment"
+  | "expression"
+  // Kept for projects created before the subject-motion pass.
+  | "push-in"
+  | "pan"
+  | "orbit"
+  | "parallax"
+  | "handheld";
 
 export interface Project {
   id: string;

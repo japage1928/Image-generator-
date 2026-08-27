@@ -54,8 +54,7 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --font-sans:
-    "Inter Tight", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: "Inter Tight", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --animate-kenburns: kenburns 9s ease-in-out infinite alternate;
   --animate-sweep: sweep 1.8s ease-in-out infinite;
 }
@@ -129,6 +128,14 @@
   animation: motion-push 6s ease-in-out infinite alternate;
 }
 
+.motion-preview-life,
+.motion-preview-action,
+.motion-preview-product,
+.motion-preview-environment,
+.motion-preview-expression {
+  animation: motion-life 3.8s ease-in-out infinite;
+}
+
 .motion-preview-pan {
   animation: motion-pan 6s ease-in-out infinite alternate;
 }
@@ -146,30 +153,68 @@
 }
 
 @keyframes motion-push {
-  from { transform: scale(1.02); }
-  to { transform: scale(1.18) translate3d(1%, -1%, 0); }
+  from {
+    transform: scale(1.02);
+  }
+  to {
+    transform: scale(1.18) translate3d(1%, -1%, 0);
+  }
+}
+
+@keyframes motion-life {
+  0%,
+  100% {
+    transform: scale(1.04) translate3d(0, 0, 0);
+  }
+  35% {
+    transform: scale(1.055) translate3d(-0.35%, 0.2%, 0);
+  }
+  70% {
+    transform: scale(1.05) translate3d(0.3%, -0.25%, 0);
+  }
 }
 
 @keyframes motion-pan {
-  from { transform: scale(1.08) translate3d(-4%, 0, 0); }
-  to { transform: scale(1.08) translate3d(4%, 0, 0); }
+  from {
+    transform: scale(1.08) translate3d(-4%, 0, 0);
+  }
+  to {
+    transform: scale(1.08) translate3d(4%, 0, 0);
+  }
 }
 
 @keyframes motion-orbit {
-  from { transform: scale(1.08) translate3d(-2%, 1%, 0) rotate(-1deg); }
-  to { transform: scale(1.08) translate3d(2%, -1%, 0) rotate(1deg); }
+  from {
+    transform: scale(1.08) translate3d(-2%, 1%, 0) rotate(-1deg);
+  }
+  to {
+    transform: scale(1.08) translate3d(2%, -1%, 0) rotate(1deg);
+  }
 }
 
 @keyframes motion-parallax {
-  from { transform: scale(1.12) translate3d(-3%, 2%, 0); }
-  to { transform: scale(1.12) translate3d(3%, -2%, 0); }
+  from {
+    transform: scale(1.12) translate3d(-3%, 2%, 0);
+  }
+  to {
+    transform: scale(1.12) translate3d(3%, -2%, 0);
+  }
 }
 
 @keyframes motion-handheld {
-  0%, 100% { transform: scale(1.06) translate3d(0, 0, 0) rotate(0); }
-  25% { transform: scale(1.06) translate3d(-0.7%, 0.4%, 0) rotate(-0.3deg); }
-  50% { transform: scale(1.07) translate3d(0.6%, -0.3%, 0) rotate(0.25deg); }
-  75% { transform: scale(1.06) translate3d(-0.3%, -0.5%, 0) rotate(-0.15deg); }
+  0%,
+  100% {
+    transform: scale(1.06) translate3d(0, 0, 0) rotate(0);
+  }
+  25% {
+    transform: scale(1.06) translate3d(-0.7%, 0.4%, 0) rotate(-0.3deg);
+  }
+  50% {
+    transform: scale(1.07) translate3d(0.6%, -0.3%, 0) rotate(0.25deg);
+  }
+  75% {
+    transform: scale(1.06) translate3d(-0.3%, -0.5%, 0) rotate(-0.15deg);
+  }
 }
 
 @layer base {
